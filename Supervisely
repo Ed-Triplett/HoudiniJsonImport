@@ -8,6 +8,30 @@ import json
 file = node.evalParm("file")
 file2 = node.evalParm("metadata")
 
+with open(file2, 'r') as json_file:
+    input = json.load(json_file)
+    
+    tags = input["tags"] 
+    
+    for tag in tags:
+        bad_chars = ["* ", "(", ")", ",", "?", "'"]
+        spaces = [" ", "-"]
+        
+        name = tag['name']
+        
+        for i in bad_chars: 
+            name = name.replace(i, '')
+            
+        for i in spaces:
+            name = name.replace(i, '_')
+            
+        if tag["name"] == "Length in meters":
+            geo.addAttrib(hou.attribType.Point, name, 0.0)
+        elif tag["value_type"] == "any_number":
+            geo.addAttrib(hou.attribType.Point, name, 0)
+        else:
+            geo.addAttrib(hou.attribType.Point, name, "")
+
 with open(file, 'r') as json_file:
     input = json.load(json_file)
     
@@ -15,27 +39,46 @@ with open(file, 'r') as json_file:
     
     geo.addAttrib(hou.attribType.Point, "id", 0)
     geo.addAttrib(hou.attribType.Point, "class", "")
-    geo.addAttrib(hou.attribType.Point, "name", "")
-    geo.addAttrib(hou.attribType.Point, "pscale", 1.0)
-    geo.addAttrib(hou.attribType.Point, "min", 0.0)
-    geo.addAttrib(hou.attribType.Point, "max", 0.0)
-    geo.addAttrib(hou.attribType.Point, "myscale", hou.Vector3(0,0,0))
-    geo.addAttrib(hou.attribType.Point, "Cd", hou.Vector3(0,0,0))
+    #geo.addAttrib(hou.attribType.Point, "name", "")
+    #geo.addAttrib(hou.attribType.Point, "pscale", 1.0)
+    #geo.addAttrib(hou.attribType.Point, "min", 0.0)
+    #geo.addAttrib(hou.attribType.Point, "max", 0.0)
+    #geo.addAttrib(hou.attribType.Point, "myscale", hou.Vector3(0,0,0))
+    #geo.addAttrib(hou.attribType.Point, "Cd", hou.Vector3(0,0,0))
     
     for object in objects:
         id = object['id']
         classTitle = object['classTitle']
-        tags = object['tags']
-        
+        tags = object['tags']     
         
         pt = geo.createPoint()
         pt.setAttribValue("id", id)
         pt.setAttribValue("class", classTitle)
         
-        if tags:
-            if isinstance(tags[0]['value'], basestring):                        
-                name = tags[0]['value']
-                pt.setAttribValue("name", name)
-            else: 
-                name = str(tags[0]['value'])
-                pt.setAttribValue("name", name)
+        for tag in tags:
+            bad_chars = ["* ", "(", ")", ",", "?", "'"]
+            spaces = [" ", "-"]
+        
+            name = tag['name']
+        
+            for i in bad_chars: 
+                name = name.replace(i, '')
+            
+            for i in spaces:
+                name = name.replace(i, '_')
+            
+            value = tag['value'] 
+            
+            if value is None:
+                pt.setAttribValue(name, 'true')
+            else:
+                pt.setAttribValue(name, value)
+            
+        
+        #if tags:
+            #if isinstance(tags[0]['value'], basestring):                        
+                #name = tags[0]['value']
+                #pt.setAttribValue("name", name)
+            #else: 
+                #name = str(tags[0]['value'])
+                #pt.setAttribValue("name", name)
