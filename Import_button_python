@@ -1,0 +1,51 @@
+import os
+
+objects_path = hou.node(".").parm("import").eval()
+folder = os.listdir(objects_path)
+
+
+grid = hou.node("../python_test").createNode("grid")
+
+wrangler = hou.node("../python_test").createNode("attribwrangle")
+wrangler.setInput(0,grid)
+
+blockBegin = hou.node("../python_test").createNode("block_begin","begin")
+blockBegin.setInput(0,wrangler)
+blockBegin.parm("method").set(1)
+blockBegin.parm("blockpath").set("../end")
+
+vex = hou.node(".").parm("vex_code").eval()
+wrangler.parm("snippet").set(vex)
+
+switch = hou.node("../python_test").createNode("switch")
+
+copy = hou.node("../python_test").createNode("copytopoints")
+copy.setInput(0,switch)
+copy.setInput(1,blockBegin)
+
+
+blockEnd = hou.node("../python_test").createNode("block_end","end")
+blockEnd.setInput(0,copy)
+blockEnd.parm("itermethod").set(1)
+blockEnd.parm("method").set(1)
+blockEnd.parm("blockpath").set("../begin")
+blockEnd.parm("templatepath").set("../begin")
+
+blockBegin.parm("createmetablock").pressButton()
+
+i = 0
+for file in folder: 
+    if file.endswith(".png"):
+        path = objects_path + file
+        file_node = hou.node("../python_test").createNode("file")
+        file_node.parm("file").set(path)
+        
+        switch.setInput(i,file_node)
+        i+= 1
+        
+switchCode = hou.node(".").parm("switch_code").eval() + str(i) + ")"
+switch.parm("input").setExpression(switchCode, hou.exprLanguage.Hscript)
+
+        
+normal = hou.node("../python_test").createNode("normal")
+normal.setInput(0,blockEnd)
