@@ -11,7 +11,7 @@ file2 = node.evalParm("metadata")
 with open(file2, 'r') as json_file:
     input = json.load(json_file)
     
-    tags = input["tags"] 
+    tags = input["tags"]
     
     for tag in tags:
         bad_chars = ["* ", "(", ")", ",", "?", "'"]
@@ -35,6 +35,8 @@ with open(file2, 'r') as json_file:
 with open(file, 'r') as json_file:
     input = json.load(json_file)
     
+    y_total = input["size"]["height"]
+    
     objects = input['objects']
     
     geo.addAttrib(hou.attribType.Point, "id", 0)
@@ -49,11 +51,35 @@ with open(file, 'r') as json_file:
     for object in objects:
         id = object['id']
         classTitle = object['classTitle']
-        tags = object['tags']     
+        tags = object['tags']
         
         pt = geo.createPoint()
+        
+        if "bitmap" in object: 
+        
+            x = object['bitmap']['origin'][0]
+            y = object['bitmap']['origin'][1]
+            y = y_total - y
+            pt.setPosition((x,y,0))
+        
+        if "points" in object: 
+            pairs = object["points"]["exterior"]
+            x = []
+            y = []
+            for pair in pairs:
+                x.append(pair[0])
+                y.append(pair[1])
+            
+            x = min(x)
+            y = y_total - min(y)
+            
+            pt.setPosition((x,y,0))
+                        
+        
         pt.setAttribValue("id", id)
         pt.setAttribValue("class", classTitle)
+        #pt.setAttribValue("P[x]", x)
+        
         
         for tag in tags:
             bad_chars = ["* ", "(", ")", ",", "?", "'"]
