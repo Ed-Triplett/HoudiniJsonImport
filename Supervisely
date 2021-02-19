@@ -13,22 +13,31 @@ with open(file2, 'r') as json_file:
     
     tags = input["tags"]
     
+    # iterate through all the tags to remove problem characters and spaces
     for tag in tags:
         bad_chars = ["* ", "(", ")", ",", "?", "'"]
         spaces = [" ", "-"]
         
         name = tag['name']
         
+        # remove any bad_chars 
         for i in bad_chars: 
             name = name.replace(i, '')
-            
+        
+        # replace spaces and dashes with an underscore
         for i in spaces:
             name = name.replace(i, '_')
-            
+        
+        # create a new attribute with the tag's name
+        # if the tag is length in meters, tye type should be float     
         if tag["name"] == "Length in meters":
             geo.addAttrib(hou.attribType.Point, name, 0.0)
+            
+        # if the tag's value_type is any_number, make it an integer
         elif tag["value_type"] == "any_number":
             geo.addAttrib(hou.attribType.Point, name, 0)
+        
+        # otherwise, the type is string 
         else:
             geo.addAttrib(hou.attribType.Point, name, "")
 
@@ -39,6 +48,7 @@ with open(file, 'r') as json_file:
     
     objects = input['objects']
     
+    # create new attributes name/type w/ default value
     geo.addAttrib(hou.attribType.Point, "id", 0)
     geo.addAttrib(hou.attribType.Point, "class", "")
     #geo.addAttrib(hou.attribType.Point, "name", "")
@@ -48,6 +58,7 @@ with open(file, 'r') as json_file:
     #geo.addAttrib(hou.attribType.Point, "myscale", hou.Vector3(0,0,0))
     #geo.addAttrib(hou.attribType.Point, "Cd", hou.Vector3(0,0,0))
     
+    # iterate through the objects to get the attribute values for each one
     for object in objects:
         id = object['id']
         classTitle = object['classTitle']
@@ -75,28 +86,36 @@ with open(file, 'r') as json_file:
             
             pt.setPosition((x,y,0))
                         
-        
+        # set the value of the 'id' attribute to the object's id
         pt.setAttribValue("id", id)
+        
+        # set the value of the 'class' attribute to the object's classTitle
         pt.setAttribValue("class", classTitle)
         #pt.setAttribValue("P[x]", x)
         
-        
+        # iterate through the object's tags to remove bad characters and spaces
         for tag in tags:
             bad_chars = ["* ", "(", ")", ",", "?", "'"]
             spaces = [" ", "-"]
         
             name = tag['name']
-        
+            
+            # remove character if it is in bad_chars
             for i in bad_chars: 
                 name = name.replace(i, '')
             
+            # replace spaces and dashes with an underscore
             for i in spaces:
                 name = name.replace(i, '_')
             
             value = tag['value'] 
             
+            # set the value of the attribute whose name is the tag name
+            # if the tag's value is None, make it 'true'
             if value is None:
                 pt.setAttribValue(name, 'true')
+            
+            # otherwise, that keep the tag's original value
             else:
                 pt.setAttribValue(name, value)
             
